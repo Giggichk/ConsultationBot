@@ -94,11 +94,12 @@ async def add_time_handler(message: Message, state: FSMContext):
 
 
 @admin_router.callback_query(F.data.startswith("day"))
-async def process_day(callback: CallbackQuery):
+async def process_day(callback: CallbackQuery, state: FSMContext):
     _, day, month, year = callback.data.split(":")
     date = f"{day}-{month}-{year}"
     await callback.message.answer(f"Ты выбрал дату: {date}")
     await callback.answer()
+    await state.update_data(time=date)
 
 
 @admin_router.callback_query(F.data.startswith("prev"))
@@ -131,28 +132,28 @@ async def process_next(callback: CallbackQuery):
     await callback.answer()
 
 
-@admin_router.message(AddTime.time)
-async def request_data_add_time(message: Message, state: FSMContext):
-    if message.text == 'Выйти':
-
-        await state.clear()
-        await admin_handler(message,
-                            text="Выберите действие, которое хотите сделать",
-                            kb=StaticKbAdmin.admins_commands)
-
-    elif bool(re.fullmatch(r"(?:[0-9]|[01]\d|2[0-3]):[0-5]\d", message.text)):
-
-        await state.update_data(time=message.text)
-        data = await state.get_data()
-        try:
-            add_time(data['time'])
-            await message.answer(text='Время успешно добавлено ✅', reply_markup=StaticKbAdmin.admins_commands)
-            await state.clear()
-        except:
-            await message.answer(text='Извините, но это время уже существует')
-
-    else:
-        await message.answer(text='Введите корректную форму времени')
+#@admin_router.message(AddTime.time)
+#async def request_data_add_time(message: Message, state: FSMContext):
+#    if message.text == 'Выйти':
+#
+#        await state.clear()
+#        await admin_handler(message,
+#                            text="Выберите действие, которое хотите сделать",
+#                            kb=StaticKbAdmin.admins_commands)
+#
+#    elif bool(re.fullmatch(r"(?:[0-9]|[01]\d|2[0-3]):[0-5]\d", message.text)):
+#
+#        await state.update_data(time=message.text)
+#        data = await state.get_data()
+#        try:
+#            add_time(data['time'])
+#            await message.answer(text='Время успешно добавлено ✅', reply_markup=StaticKbAdmin.admins_commands)
+#            await state.clear()
+#        except:
+#            await message.answer(text='Извините, но это время уже существует')
+#
+#   else:
+#        await message.answer(text='Введите корректную форму времени')
 
 #Связанные хендлеры delete_time_handler и process_delete_time для удаления времени
 @admin_router.message(F.text == '❌Удалить опр.время🕰️')
