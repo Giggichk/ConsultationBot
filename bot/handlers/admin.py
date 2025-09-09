@@ -97,9 +97,12 @@ async def add_time_handler(message: Message, state: FSMContext):
 async def process_day(callback: CallbackQuery, state: FSMContext):
     _, day, month, year = callback.data.split(":")
     date = f"{day}-{month}-{year}"
-    await callback.message.answer(f"Ты выбрал дату: {date}")
     await callback.answer()
     await state.update_data(time=date)
+    await state.set_state(AddTime.quantity)
+    await callback.message.answer(text="Сколько записей в день?")
+#TODO Тут пиздец какой-то, хоть все строчки удали в этом хэндлере и он всё равно будет работать
+
 
 
 @admin_router.callback_query(F.data.startswith("prev"))
@@ -131,6 +134,15 @@ async def process_next(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=kb)
     await callback.answer()
 
+
+@admin_router.message(AddTime.quantity)
+async def process_add_time(message: Message, state: FSMContext):
+    await state.update_data(quantity=message.text)
+    get_data = await state.get_data()
+    for item in range(get_data):
+        await message.answer(text=f'Время записи - {item}')
+        add_request(date, message.text)
+        #TODO Прописать здесь проверку на правильность времени, поучение данных из AddTime.quentity, работы функции add_request
 
 #@admin_router.message(AddTime.time)
 #async def request_data_add_time(message: Message, state: FSMContext):

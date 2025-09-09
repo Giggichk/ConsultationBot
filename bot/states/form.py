@@ -10,6 +10,7 @@ class DataConsultation(StatesGroup):
 
 class AddTime(StatesGroup):
     time = State()
+    quantity = State()
 
 
 class DeleteTime(StatesGroup):
