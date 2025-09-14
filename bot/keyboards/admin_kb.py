@@ -6,7 +6,7 @@ from database.db import request_all_db_t
 class StaticKbAdmin:
     admins_commands = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text='🕗Добавить прием'), KeyboardButton(text='❌Удалить опр.время🕰️')],
+            [KeyboardButton(text='🕗Добавить прием'), KeyboardButton(text='❌Удалить приемы')],
             [KeyboardButton(text='Очистить базу данных🗃️')],
             [KeyboardButton(text='Статусы и режимы')],
             [KeyboardButton(text='Создать Excel-файл консультаций📊')],
@@ -20,7 +20,6 @@ class AdminKbStatus:
     admin_keyboard_states = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text='Возобновить запись✅'), KeyboardButton(text='Остановить запись❌')],
-            [KeyboardButton(text='Статус бота🤖')],
             [KeyboardButton(text='Перейти в режим консультации🛑', )],
             [KeyboardButton(text='🔙Назад')]
         ],
@@ -30,8 +29,8 @@ class AdminKbStatus:
 
 
 class SqlTimeAdminKb:
-    async def choose_time(self):
-        result = request_all_db_t()
+    async def choose_time(self, date):
+        result = request_all_db_t(date)
 
         if not result:
             builder = InlineKeyboardBuilder()
@@ -61,3 +60,17 @@ class ExitButton:
         resize_keyboard=True,
         one_time_keyboard=True
     )
+
+
+class HoursKb:
+    keyboard = []
+    for hour in range(9, 19):
+        row = []
+        for minute in range(0, 60, 30):
+            time_str = f"{hour:02d}:{minute:02d}"
+            row.append(KeyboardButton(text=time_str))
+        keyboard.append(row)
+
+    hours_kb = ReplyKeyboardMarkup(keyboard=keyboard,
+                                   resize_keyboard=True,
+                                   input_field_placeholder="Своё время>>")
