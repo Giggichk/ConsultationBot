@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import calendar
 
 
+
 MONTHS = {
     1: "Январь", 2: "Февраль", 3: "Март",
     4: "Апрель", 5: "Май", 6: "Июнь",
@@ -9,7 +10,7 @@ MONTHS = {
     10: "Октябрь", 11: "Ноябрь", 12: "Декабрь"
 }
 
-def get_calendar(year: int, month: int):
+def get_calendar(year: int, month: int, call_day: str, name):
     month_calendar = calendar.monthcalendar(year, month)
 
     # заголовок дней недели
@@ -27,15 +28,14 @@ def get_calendar(year: int, month: int):
             else:
                 row.append(InlineKeyboardButton(
                     text=str(day),
-                    callback_data=f"day:{day}:{month}:{year}"
+                    callback_data=f"{call_day}:{day}:{month}:{year}"
                 ))
         keyboard.append(row)
 
-    # навигация с названием месяца по центру
     keyboard.append([
-        InlineKeyboardButton(text="<<", callback_data=f"prev:{month}:{year}"),
+        InlineKeyboardButton(text="<<", callback_data=f"{name}prev:{month}:{year}"),
         InlineKeyboardButton(text=MONTHS[month], callback_data="ignore"),
-        InlineKeyboardButton(text=">>", callback_data=f"next:{month}:{year}")
+        InlineKeyboardButton(text=">>", callback_data=f"{name}next:{month}:{year}")
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

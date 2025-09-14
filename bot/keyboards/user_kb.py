@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from database.db import request_db
+from database.db import request_all_db_t
 
 
 class StaticKb:
@@ -22,8 +22,8 @@ class StaticKb:
     )
 
 class SqlKb:
-    async def choose_time(self):
-        result = request_db()
+    async def choose_time(self, date):
+        result = request_all_db_t(date)
 
         if not result:
             builder = InlineKeyboardBuilder()

@@ -19,47 +19,44 @@ def request_db():
 def request_all_db_t(date):
     with sq.connect(DB_PATH) as con:
         cur = con.cursor()
-        cur.execute("SELECT date FROM schedule")
+        cur.execute(f"SELECT time FROM schedule Where date = '{date}'")
         row = cur.fetchall()
     return row
 
 
-def update_time(cur_time):
+def update_time(date, time):
     with sq.connect(DB_PATH) as con:
         cur = con.cursor()
-        cur.execute("UPDATE time SET занято = '+' WHERE время = ?", (cur_time,))
+        cur.execute("UPDATE schedule SET status = '+' WHERE date = ? AND time = ?", (date, time))
 
 
-def add_request(user_id, name, business, experience, time):
+def add_request(user_id, name, business, experience, date, time):
     with sq.connect(DB_PATH) as con:
         cur = con.cursor()
         cur.execute("""
-            INSERT INTO Record (user_id, name, business, experience, time)
-            VALUES (?, ?, ?, ?, ?)
-        """, (user_id, name, business, experience, time))
+            INSERT INTO Record (user_id, name, business, experience, time, date)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (user_id, name, business, experience, time, date))
 
 
 def add_time(date, time):
     with sq.connect(DB_PATH) as con:
         cur = con.cursor()
-        for exits_date in request_all_db_t(date):
-            if date in exits_date:
-                raise ValueError
         cur.execute("""
                         INSERT INTO schedule (date, time, status)
                         VALUES (?, ?, ?)
                         """, (date, time, '-'))
 
 
-def delete_time_from_db(time_user):
+def delete_time_from_db(time_user, date_user):
     with sq.connect(DB_PATH) as con:
         cur = con.cursor()
-        print(f"Удаляю из базы: {time_user!r}")
         try:
             cur.execute("""
-                        DELETE FROM time
-                        WHERE "время" = ?
-                        """, (time_user,))
+                        DELETE FROM schedule
+                        WHERE date = ?
+                        AND time = ?;
+                        """, (date_user, time_user))
         except Exception as e:
             print(f"❌ Ошибка: {e}")
 
@@ -97,7 +94,7 @@ def clear_all_tables():
     with sq.connect(DB_PATH) as conn:
         cur = conn.cursor()
         cur.execute("DELETE FROM Record;")
-        cur.execute("DELETE FROM time;")
+        cur.execute("DELETE FROM schedule;")
 
         cur.execute("DELETE FROM sqlite_sequence WHERE name='Record';")
         cur.execute("DELETE FROM sqlite_sequence WHERE name='time';")

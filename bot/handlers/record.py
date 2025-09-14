@@ -45,9 +45,9 @@ async def process_business(message: Message, state: FSMContext):
 @router.callback_query(F.data.in_(['+', '-', 'own_exp']))
 async def process_exp(callback: CallbackQuery, state: FSMContext):
     await state.update_data(experience_ad=callback.data)
-    await state.set_state(DataConsultation.time)
+    await state.set_state(DataConsultation.date)
     today = datetime.date.today()
-    kb = get_calendar(today.year, today.month)
+    kb = get_calendar(today.year, today.month, "record_day", "R")
     await delete_and_answer(
         callback,
         '📅 Выберите удобную дату ',
@@ -55,16 +55,17 @@ async def process_exp(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@router.callback_query(F.data.startswith("day"))
+@router.callback_query(F.data.startswith("record_day"))
 async def process_day(callback: CallbackQuery, state: FSMContext):
     _, day, month, year = callback.data.split(":")
     date = f"{day}-{month}-{year}"
-    await callback.message.answer(f"Ты выбрал дату: {date}")
-    await state.update_data(time=date)
+    await state.update_data(date=date)
     await callback.answer()
+    await callback.message.delete()
+    await callback.message.answer(text='Выберите время:', reply_markup=await SqlKb().choose_time(date))
 
 
-@router.callback_query(F.data.startswith("prev"))
+@router.callback_query(F.data.startswith("Rprev"))
 async def process_prev(callback: CallbackQuery):
     _, month, year = callback.data.split(":")
     month, year = int(month), int(year)
@@ -74,12 +75,12 @@ async def process_prev(callback: CallbackQuery):
     else:
         month -= 1
 
-    kb = get_calendar(year, month)
+    kb = get_calendar(year, month, "record_day", "R")
     await callback.message.edit_reply_markup(reply_markup=kb)
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("next"))
+@router.callback_query(F.data.startswith("Rnext"))
 async def process_next(callback: CallbackQuery):
     _, month, year = callback.data.split(":")
     month, year = int(month), int(year)
@@ -89,7 +90,7 @@ async def process_next(callback: CallbackQuery):
     else:
         month += 1
 
-    kb = get_calendar(year, month)
+    kb = get_calendar(year, month, "record_day", "R")
     await callback.message.edit_reply_markup(reply_markup=kb)
     await callback.answer()
 
@@ -97,19 +98,21 @@ async def process_next(callback: CallbackQuery):
 @router.callback_query(F.data.startswith('time:'))
 async def process_time(callback: CallbackQuery, state: FSMContext):
     time_value = callback.data.split(':', 1)[1]
-    update_time(time_value)
 
     await state.update_data(time=time_value)
     data = await state.get_data()
 
-    if all(key in data for key in ('name_user', 'name_business', 'experience_ad', 'time')):
+    if all(key in data for key in ('name_user', 'name_business', 'experience_ad', 'date', 'time')):
         add_request(
             user_id=callback.from_user.id,
             name=data['name_user'],
             business=data['name_business'],
             experience=data['experience_ad'],
+            date=data['date'],
             time=data['time']
         )
+        update_time(date=data['date'], time=data['time'])
+
         await delete_and_answer(callback, "Вы успешно записаны на консультацию! ☑️")
     else:
         await delete_and_answer(callback, "Ошибка: не все данные были заполнены. Попробуйте снова.")
