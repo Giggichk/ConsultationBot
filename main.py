@@ -5,7 +5,7 @@ from bot.handlers import start, record, help, admin, info
 
 
 async def main():
-    bot = Bot(token='7822443255:AAFM_JCzysQSqBGItQOtnzOdKp5Mak0PO5c')
+    bot = Bot(token='YOUR TOKEN')
     dp = Dispatcher()
     dp.include_routers(start.router, help.router, record.router, admin.admin_router, info.router)
     await bot.delete_webhook(drop_pending_updates=True)
